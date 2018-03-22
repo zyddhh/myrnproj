@@ -13,7 +13,7 @@ import {
   MaskedViewIOS,
   Animated
 } from 'react-native';
-import Loader from './Loader'
+
 
 const instructions = Platform.select({
   ios: 'Press Cmd+R to reload,\n' +
@@ -34,7 +34,7 @@ type State = {
   animationDone: boolean,
 };
 
-export default class App extends Component<Props,State> {
+export default class Loader extends Component<Props,State> {
   static defaultProps = {
     isLoaded: false,
   };
@@ -43,21 +43,7 @@ export default class App extends Component<Props,State> {
     loadingProgress: new Animated.Value(0),
     animationDone: false,
   };
-  componentDidMount() {
-    this.resetAnimation();
-  }
-  resetAnimation() {
-    this.setState({
-      appReady: false,
-      rootKey: Math.random()
-    });
 
-    setTimeout(() => {
-      this.setState({
-        appReady: true,
-      });
-    }, 1000);
-  }
   componentWillReceiveProps(nextProps: Props) {
     if (nextProps.isLoaded && !this.props.isLoaded) {
       Animated.timing(this.state.loadingProgress, {
@@ -72,20 +58,33 @@ export default class App extends Component<Props,State> {
     }
   }
   render() {
-    return(
-    <View key={this.state.rootKey} style={styles.root}>
-        <Loader
-              isLoaded={this.state.appReady}
+    const imageScale = {
+      transform: [
+        {
+          scale: this.state.loadingProgress.interpolate({
+            inputRange: [0, 10, 100],
+            outputRange: [1, 0.8, 70],
+          }),
+        },
+      ],
+    };
+    return (
+        <MaskedViewIOS 
+          style={styles.container}
+          maskElement={<View style={styles.maskElement}>
+                          <Animated.Image
+                            style={[styles.maskImageStyle, imageScale]}
+                            source={require('./tree.png')}
+                          />
+                      </View>}
         >
-        </Loader>
-    </View>)
+          <View style={styles.background} />
+        </MaskedViewIOS>
+    );
   }
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-  },
   container: {
     flex: 1,
     justifyContent: 'center',
